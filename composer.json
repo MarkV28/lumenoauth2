@@ -1,0 +1,24 @@
+{
+    "name": "ecmxperts/lumenoauth2",
+    "description": "The EcmXperts LumenOauth2 package",
+    "require": {
+        "php": "^7.2",
+        "guzzlehttp/guzzle": "~7.0",
+        "illuminate/auth": "^6.0",
+        "phpseclib/phpseclib": "~2.0"
+    },
+    "authors": [
+        {
+            "name": "Mark Vels",
+            "email": "m.vels@ecmxperts.nl"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "EcmXperts\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    }
+}
