@@ -333,7 +333,7 @@ class LumenOauth2Client
                 $response = $this->client()->get(implode('/', [$this->getProviderUrl(), '.well-known/openid-configuration']));
 
                 Psr7\rewind_body($response);
-                $body = json_decode($response->getBody()->getContents(), true);
+                $body = json_decode($response->getBody()->getContents());
 
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $this->wellKnown = $body;
