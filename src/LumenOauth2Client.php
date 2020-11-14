@@ -85,7 +85,7 @@ class LumenOauth2Client
      * Verify the token and return user object.
      *
      * @param string $token
-     * @return Illuminate\Auth\GenericUser;
+     * @return Illuminate\Auth\GenericUser|null;
      *
      * @throws EcmXperts\Exception\LumenOauth2Exception
      */
@@ -118,20 +118,26 @@ class LumenOauth2Client
      * Set the expected audience.
      *
      * @param string $audience
+     * @return $this
      */
     public function setAudience($audience)
     {
         $this->audience = $audience;
+
+        return $this;
     }
 
     /**
      * Set the provider url.
      *
      * @param string
+     * @return $this
      */
     public function setProviderUrl($providerUrl)
     {
         $this->providerUrl = $providerUrl;
+
+        return $this;
     }
 
     /**
