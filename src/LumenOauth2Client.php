@@ -426,9 +426,30 @@ class LumenOauth2Client
      */
     protected function verifyJWTClaims()
     {
-        return ((call_user_func($this->issuerValidator, $this->claims->iss)))
-            && (($this->claims->aud === $this->audience) || in_array($this->audience, $this->claims->aud, true))
-            && (!isset($this->claims->exp) || ((gettype($this->claims->exp) === 'integer') && ($this->claims->exp >= time() - 300)))
-            && (!isset($this->claims->nbf) || ((gettype($this->claims->nbf) === 'integer') && ($this->claims->nbf <= time() + 300)));
+        $validIssuer = (call_user_func($this->issuerValidator, $this->claims->iss));
+
+        if (!$validIssuer) {
+            throw new LumenOauth2Exception('Invalid issuer');
+        }
+
+        $validAudience = ($this->claims->aud === $this->audience) || in_array($this->audience, $this->claims->aud, true);
+
+        if (!$validAudience) {
+            throw new LumenOauth2Exception('Invalid audience: ' . $this->audience);
+        }
+
+        $isExpired = (isset($this->claims->exp) && gettype($this->claims->exp) === 'integer' && $this->claims->exp < time() - 300);
+
+        if ($isExpired) {
+            throw new LumenOauth2Exception('Token has expired on ' . date('Y/m/d', $this->claims->exp));
+        }
+
+        $isNotBefore = (isset($this->claims->nbf) && gettype($this->claims->nbf) === 'integer' && $this->claims->nbf > time() + 300);
+
+        if ($isNotBefore) {
+            throw new LumenOauth2Exception('Token can not be used before: ' . date('Y/m/d', $this->claims->nbf));
+        }
+
+        return $validIssuer && $validAudience && !$isExpired && !$isNotBefore;
     }
 }
