@@ -321,7 +321,7 @@ class LumenOauth2Client
         $isExpired = (isset($this->claims->exp) && gettype($this->claims->exp) === 'integer' && $this->claims->exp < time() - 300);
 
         if ($isExpired) {
-            throw new LumenOauth2Exception('Token has expired on ' . date('Y/m/d', $this->claims->exp));
+            throw new LumenOauth2Exception('Token has expired on ' . date('Y/m/d H:i:s', $this->claims->exp));
         }
 
         $isNotBefore = (isset($this->claims->nbf) && gettype($this->claims->nbf) === 'integer' && $this->claims->nbf > time() + 300);
