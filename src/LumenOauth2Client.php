@@ -220,6 +220,8 @@ class LumenOauth2Client
             $this->parseExceptionFromMessage($e);
         }
 
+        $payload = implode('.', $parts);
+
         switch ($header->alg) {
             case 'RS256':
             case 'PS256':
@@ -231,7 +233,7 @@ class LumenOauth2Client
                 $verified = $this->verifyRSAJWTsignature(
                     $hashtype,
                     get_key_for_header($jwks->keys, $header),
-                    $this->accessToken,
+                    $payload,
                     $signature,
                     $signatureType
                 );
