@@ -178,6 +178,162 @@ class LumenOauth2Client
     }
 
     /**
+     * Decode the JWT payload.
+     *
+     * @return object
+     */
+    protected function decodeJWTPayload()
+    {
+        $parts = explode('.', $this->accessToken);
+        return json_decode(base64_decode($parts[1]));
+    }
+
+    /**
+     * Get the provider config value.
+     *
+     * @param string $param
+     * @param mixed $default
+     * @return mixed
+     *
+     * @throws EcmXperts\Exception\LumenOauth2Exception
+     */
+    protected function getProviderConfigValue($param, $default = null)
+    {
+        if (!isset($this->providerConfig[$param])) {
+            $this->providerConfig[$param] = $this->getWellKnownConfigValue($param, $default);
+        }
+
+        return $this->providerConfig[$param];
+    }
+
+    /**
+     * Get the provider well known config value.
+     *
+     * @param string $param
+     * @param mixed $default
+     * @return mixed
+     *
+     * @throws EcmXperts\Exception\LumenOauth2Exception
+     */
+    protected function getWellKnownConfigValue($param, $default = null)
+    {
+        if (!$this->wellKnown) {
+            try {
+                $response = $this->client()->get(implode('/', [$this->getProviderUrl(), '.well-known/openid-configuration']));
+
+                Psr7\rewind_body($response);
+                $body = json_decode($response->getBody()->getContents());
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $this->wellKnown = $body;
+                } else {
+                    throw new LumenOauth2Exception('Could not get well known configuration, json decode failed. Got response: ' . $response->getBody()->getContents());
+                }
+            } catch (Exception $e) {
+                $this->parseExceptionFromMessage($e);
+            }
+        }
+
+        if (isset($this->wellKnown->{$param})) {
+            return $this->wellKnown->{$param};
+        }
+
+        return $default;
+    }
+
+    /**
+     * Parse the reponse in the Exception to return the error messages.
+     *
+     * @param \Exception $e
+     *
+     * @throws EcmXperts\Exception\LumenOauth2Exception
+     */
+    protected function parseExceptionFromMessage(Exception $e)
+    {
+        if (!$e instanceof BadResponseException) {
+            throw new LumenOauth2Exception($e->getMessage());
+        }
+
+        $response = $e->getResponse();
+
+        Psr7\rewind_body($response);
+        $responseBody = $response->getBody()->getContents();
+        $decodedResponseBody = json_decode($responseBody, true);
+
+        if (!is_null($decodedResponseBody) && isset($decodedResponseBody['error']['message']['value'])) {
+            $errorMessage = $decodedResponseBody['error']['message']['value'];
+        } else {
+            $errorMessage = $responseBody;
+        }
+
+        throw new LumenOauth2Exception('Error ' . $response->getStatusCode() . ': ' . $errorMessage, $response->getStatusCode());
+    }
+
+    /**
+     * Parse the response and return the json content.
+     *
+     * @param GuzzleHttp\Psr7\Response $response
+     * @return mixed
+     *
+     * @throws EcmXperts\Exception\LumenOauth2Exception
+     */
+    protected function parseResponse(Response $response)
+    {
+        try {
+            if ($response->getStatusCode() === 204) {
+                return [];
+            }
+
+            Psr7\rewind_body($response);
+            $json = json_decode($response->getBody()->getContents());
+
+            if (is_null($json)) {
+                throw new LumenOauth2Exception('Json decode failed. Got response: ' . $response->getBody()->getContents());
+            }
+
+            return $json;
+        } catch (RuntimeException $e) {
+            throw new LumenOauth2Exception($e->getMessage());
+        }
+    }
+
+    /**
+     * Verify the JWT claims.
+     *
+     * @return bool
+     *
+     * @throws EcmXperts\Exception\LumenOauth2Exception
+     */
+    protected function verifyJWTClaims()
+    {
+        $validIssuer = (call_user_func($this->issuerValidator, $this->claims->iss));
+
+        if (!$validIssuer) {
+            throw new LumenOauth2Exception('Invalid issuer');
+        }
+
+        $validAudience = ($this->claims->aud === $this->audience) || in_array($this->audience, $this->claims->aud, true);
+
+        if (!$validAudience) {
+            throw new LumenOauth2Exception('Invalid audience: ' . $this->audience);
+        }
+
+        $isExpired = (isset($this->claims->exp) && gettype($this->claims->exp) === 'integer' && $this->claims->exp < time() - 300);
+
+        if ($isExpired) {
+            throw new LumenOauth2Exception('Token has expired on ' . date('Y/m/d', $this->claims->exp));
+        }
+
+        $isNotBefore = (isset($this->claims->nbf) && gettype($this->claims->nbf) === 'integer' && $this->claims->nbf > time() + 300);
+
+        if ($isNotBefore) {
+            throw new LumenOauth2Exception('Token can not be used before: ' . date('Y/m/d', $this->claims->nbf));
+        }
+
+        return $validIssuer && $validAudience && !$isExpired && !$isNotBefore;
+    }
+
+    /**
      * Verifies the jwt token against the provider.
      *
      * @return bool
@@ -299,159 +455,5 @@ class LumenOauth2Client
         }
 
         return $rsa->verify($payload, $signature);
-    }
-
-    /**
-     * Get the provider config value.
-     *
-     * @param string $param
-     * @param mixed $default
-     * @return mixed
-     *
-     * @throws EcmXperts\Exception\LumenOauth2Exception
-     */
-    protected function getProviderConfigValue($param, $default = null)
-    {
-        if (!isset($this->providerConfig[$param])) {
-            $this->providerConfig[$param] = $this->getWellKnownConfigValue($param, $default);
-        }
-
-        return $this->providerConfig[$param];
-    }
-
-    /**
-     * Get the provider well known config value.
-     *
-     * @param string $param
-     * @param mixed $default
-     * @return mixed
-     *
-     * @throws EcmXperts\Exception\LumenOauth2Exception
-     */
-    protected function getWellKnownConfigValue($param, $default = null)
-    {
-        if (!$this->wellKnown) {
-            try {
-                $response = $this->client()->get(implode('/', [$this->getProviderUrl(), '.well-known/openid-configuration']));
-
-                Psr7\rewind_body($response);
-                $body = json_decode($response->getBody()->getContents());
-
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $this->wellKnown = $body;
-                } else {
-                    throw new LumenOauth2Exception('Could not get well known configuration, json decode failed. Got response: ' . $response->getBody()->getContents());
-                }
-            } catch (Exception $e) {
-                $this->parseExceptionFromMessage($e);
-            }
-        }
-
-        if (isset($this->wellKnown->{$param})) {
-            return $this->wellKnown->{$param};
-        }
-
-        return $default;
-    }
-
-    /**
-     * Parse the reponse in the Exception to return the error messages.
-     *
-     * @param \Exception $e
-     *
-     * @throws EcmXperts\Exception\LumenOauth2Exception
-     */
-    protected function parseExceptionFromMessage(Exception $e)
-    {
-        if (!$e instanceof BadResponseException) {
-            throw new LumenOauth2Exception($e->getMessage());
-        }
-
-        $response = $e->getResponse();
-
-        Psr7\rewind_body($response);
-        $responseBody = $response->getBody()->getContents();
-        $decodedResponseBody = json_decode($responseBody, true);
-
-        if (!is_null($decodedResponseBody) && isset($decodedResponseBody['error']['message']['value'])) {
-            $errorMessage = $decodedResponseBody['error']['message']['value'];
-        } else {
-            $errorMessage = $responseBody;
-        }
-
-        throw new LumenOauth2Exception('Error ' . $response->getStatusCode() . ': ' . $errorMessage, $response->getStatusCode());
-    }
-
-    /**
-     * Parse the response and return the json content.
-     *
-     * @param GuzzleHttp\Psr7\Response $response
-     * @return mixed
-     *
-     * @throws EcmXperts\Exception\LumenOauth2Exception
-     */
-    protected function parseResponse(Response $response)
-    {
-        try {
-            if ($response->getStatusCode() === 204) {
-                return [];
-            }
-
-            Psr7\rewind_body($response);
-            $json = json_decode($response->getBody()->getContents());
-
-            if (is_null($json)) {
-                throw new LumenOauth2Exception('Json decode failed. Got response: ' . $response->getBody()->getContents());
-            }
-
-            return $json;
-        } catch (RuntimeException $e) {
-            throw new LumenOauth2Exception($e->getMessage());
-        }
-    }
-
-    /**
-     * Decode the JWT payload.
-     *
-     * @return object
-     */
-    protected function decodeJWTPayload()
-    {
-        $parts = explode('.', $this->accessToken);
-        return json_decode(base64_decode($parts[1]));
-    }
-
-    /**
-     * Verify the JWT claims.
-     *
-     * @return bool
-     */
-    protected function verifyJWTClaims()
-    {
-        $validIssuer = (call_user_func($this->issuerValidator, $this->claims->iss));
-
-        if (!$validIssuer) {
-            throw new LumenOauth2Exception('Invalid issuer');
-        }
-
-        $validAudience = ($this->claims->aud === $this->audience) || in_array($this->audience, $this->claims->aud, true);
-
-        if (!$validAudience) {
-            throw new LumenOauth2Exception('Invalid audience: ' . $this->audience);
-        }
-
-        $isExpired = (isset($this->claims->exp) && gettype($this->claims->exp) === 'integer' && $this->claims->exp < time() - 300);
-
-        if ($isExpired) {
-            throw new LumenOauth2Exception('Token has expired on ' . date('Y/m/d', $this->claims->exp));
-        }
-
-        $isNotBefore = (isset($this->claims->nbf) && gettype($this->claims->nbf) === 'integer' && $this->claims->nbf > time() + 300);
-
-        if ($isNotBefore) {
-            throw new LumenOauth2Exception('Token can not be used before: ' . date('Y/m/d', $this->claims->nbf));
-        }
-
-        return $validIssuer && $validAudience && !$isExpired && !$isNotBefore;
     }
 }
