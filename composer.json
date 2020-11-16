@@ -1,6 +1,7 @@
 {
     "name": "ecmxperts/lumenoauth2",
     "description": "The EcmXperts LumenOauth2 package",
+    "license": "MIT",
     "require": {
         "php": "^7.2",
         "guzzlehttp/guzzle": "~7.0",
