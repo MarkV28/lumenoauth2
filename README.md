@@ -7,11 +7,11 @@ Lumen Oauth2 provides a simple API to authenticate your Lumen api with an Openid
 ## Installation
 
 ### Via composer
-Run ```composer require ecmxperts/lumenoauth2 0.*```
+Run `composer require ecmxperts/lumenoauth2 0.*`
 
 ## Usage
 
-In your ```.env``` add the following Environment Variable
+In your `.env` add the following Environment Variable
 ```
 IDENTITY_URL=openid/oauth2 server address
 ```
