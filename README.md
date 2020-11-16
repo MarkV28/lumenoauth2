@@ -16,7 +16,7 @@ In your `.env` add the following Environment Variable
 IDENTITY_URL=openid/oauth2 server address
 ```
 
-In your ```app\Providers\AuthServiceProvider.php``` inside the boot method add the following lines
+In your `app\Providers\AuthServiceProvider.php` inside the boot method add the following lines
 ```
 $this->app['auth']->viaRequest('api', function ($request) {
     if (($token = $request->bearerToken()) != null) {
