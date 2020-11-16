@@ -6,21 +6,8 @@ Lumen Oauth2 provides a simple API to authenticate your Lumen api with an Openid
 
 ## Installation
 
-### Register package
-
-In your ```composer.json``` add reference to the package under the require
-```
-"ecmxperts/lumenoauth2": "0.*"
-```
-... and repositories
-```
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "ssh://git@git.ecmxperts.nl:50022/ecmxperts/web-development/lumenoauth2.git"
-    }
-]
-```
+### Via composer
+Run ```composer require ecmxperts/lumenoauth2 0.*```
 
 ## Usage
 
