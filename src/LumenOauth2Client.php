@@ -10,7 +10,6 @@ use GuzzleHttp\Client;
 use phpseclib\Crypt\RSA;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Auth\GenericUser;
 use EcmXperts\Exception\LumenOauth2Exception;
 use GuzzleHttp\Exception\BadResponseException;
 
@@ -98,8 +97,21 @@ class LumenOauth2Client
             $this->claims = $this->decodeJWTPayload();
 
             if ($this->verifyJWTClaims()) {
-                // return user object
-                return new GenericUser(get_object_vars($this->claims));
+                // get the userinfo
+                $userInfo = $this->requestUserInfo();
+
+                if (!is_null($userInfo)) {
+                    $userData = [
+                        'guid' => $userInfo->sub,
+                        'firstname' => $userInfo->given_name,
+                        'surname' => $userInfo->family_name,
+                        'fullname' => $userInfo->name,
+                        'tenant' => $this->claims->tenant,
+                    ];
+
+                    // return user object
+                    return new User($userData);
+                }
             }
         }
     }
@@ -294,6 +306,30 @@ class LumenOauth2Client
             return $json;
         } catch (RuntimeException $e) {
             throw new LumenOauth2Exception($e->getMessage());
+        }
+    }
+
+    /**
+     * Get the userinfo from the authentication server.
+     *
+     * @return mixed
+     *
+     * @throws EcmXperts\Exception\LumenOauth2Exception
+     */
+    protected function requestUserInfo()
+    {
+        try {
+            $headers = [
+                'Accept'       => 'application/json',
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->accessToken,
+            ];
+
+            $response = $this->client()->get($this->getProviderConfigValue('userinfo_endpoint'), ['headers' => $headers]);
+
+            return $this->parseResponse($response);
+        } catch (Exception $e) {
+            $this->parseExceptionFromMessage($e);
         }
     }
 
