@@ -36,31 +36,31 @@ See [Lumen Authentication](https://lumen.laravel.com/docs/6.x/authentication) fo
 The following methods can be used to access the authenticated user properties:
 * The global identifier for the user.
 ```
-$userGuid = Auth::user()->guid();
+    $userGuid = Auth::user()->guid();
 
-$userGuid = $request->user()->guid();
+    $userGuid = $request->user()->guid();
 ```
 * The firstname for the user.
 ```
-$firstname = Auth::user()->firstname();
+    $firstname = Auth::user()->firstname();
 
-$firstname = $request->user()->firstname();
+    $firstname = $request->user()->firstname();
 ```
 * The surname for the user.
 ```
-$surname = Auth::user()->surname();
+    $surname = Auth::user()->surname();
 
-$surname = $request->user()->surname();
+    $surname = $request->user()->surname();
 ```
 * The fullname for the user.
 ```
-$fullname = Auth::user()->fullname();
+    $fullname = Auth::user()->fullname();
 
-$fullname = $request->user()->fullname();
+    $fullname = $request->user()->fullname();
 ```
 * The tenant global identifier for the user.
 ```
-$tenant = Auth::user()->tenant();
+    $tenant = Auth::user()->tenant();
 
-$tenant = $request->user()->tenant();
+    $tenant = $request->user()->tenant();
 ```
