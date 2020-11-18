@@ -348,7 +348,11 @@ class LumenOauth2Client
             throw new LumenOauth2Exception('Invalid issuer');
         }
 
-        $validAudience = ($this->claims->aud === $this->audience) || in_array($this->audience, $this->claims->aud, true);
+        if (!is_array($this->claims->aud)) {
+            $this->claims->aud = [$this->claims->aud];
+        }
+
+        $validAudience = (in_array($this->audience, $this->claims->aud, true));
 
         if (!$validAudience) {
             throw new LumenOauth2Exception('Invalid audience: ' . $this->audience);
