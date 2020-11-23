@@ -10,6 +10,7 @@ use GuzzleHttp\Client;
 use phpseclib\Crypt\RSA;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Auth\GenericUser;
 use EcmXperts\Exception\LumenOauth2Exception;
 use GuzzleHttp\Exception\BadResponseException;
 
@@ -97,20 +98,25 @@ class LumenOauth2Client
             $this->claims = $this->decodeJWTPayload();
 
             if ($this->verifyJWTClaims()) {
-                // get the userinfo
-                $userInfo = $this->requestUserInfo();
+                try {
+                    // get the userinfo
+                    $userInfo = $this->requestUserInfo();
 
-                if (!is_null($userInfo)) {
-                    $userData = [
-                        'guid' => $userInfo->sub,
-                        'firstname' => $userInfo->given_name,
-                        'surname' => $userInfo->family_name,
-                        'fullname' => $userInfo->name,
-                        'tenant' => $this->claims->tenant,
-                    ];
-
-                    // return user object
-                    return new User($userData);
+                    if (!is_null($userInfo)) {
+                        // return user object
+                        return new User([
+                            'guid' => $userInfo->sub,
+                            'firstname' => $userInfo->given_name,
+                            'surname' => $userInfo->family_name,
+                            'fullname' => $userInfo->name,
+                            'tenant' => $this->claims->tenant,
+                            'scope' => $this->claims->scope,
+                        ]);
+                    }
+                } catch (LumenOauth2Exception $ex) {
+                    return new GenericUser([
+                        'scope' => $this->claims->scope
+                    ]);
                 }
             }
         }
