@@ -354,6 +354,10 @@ class LumenOauth2Client
             throw new LumenOauth2Exception('Invalid issuer');
         }
 
+        if (!isset($this->claims->aud)) {
+            $this->claims->aud = [];
+        }
+
         if (!is_array($this->claims->aud)) {
             $this->claims->aud = [$this->claims->aud];
         }
