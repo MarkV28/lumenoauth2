@@ -21,7 +21,7 @@ In your `app\Providers\AuthServiceProvider.php` inside the boot method add the f
 $this->app['auth']->viaRequest('api', function ($request) {
     if (($token = $request->bearerToken()) != null) {
         try {
-            return LumenOAuth2::setProviderUrl(env('IDENTITY_URL'))
+            return LumenOauth2::setProviderUrl(env('IDENTITY_URL'))
                 ->setAudience('expected audience')
                 ->authenticate($token);
         } catch (LumenOauth2Exception $e) {
