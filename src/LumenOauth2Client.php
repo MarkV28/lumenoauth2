@@ -110,12 +110,12 @@ class LumenOauth2Client
                             'surname' => $userInfo->family_name,
                             'fullname' => $userInfo->name,
                             'tenant' => $this->claims->tenant,
-                            'scope' => $this->claims->scope,
+                            'scopes' => $this->claims->scopes,
                         ]);
                     }
                 } catch (LumenOauth2Exception $ex) {
                     return new GenericUser([
-                        'scope' => $this->claims->scope
+                        'scopes' => $this->claims->scopes
                     ]);
                 }
             }
