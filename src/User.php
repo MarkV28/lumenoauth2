@@ -28,13 +28,23 @@ class User extends GenericUser implements UserContract
     }
 
     /**
-     * Get the surname for the user.
+     * Get the lastname for the user.
      *
      * @return string
      */
-    public function surname()
+    public function lastname()
     {
-        return $this->attributes['surname'];
+        return $this->attributes['lastname'];
+    }
+
+    /**
+     * Get the middlename for the user.
+     *
+     * @return string
+     */
+    public function middlename()
+    {
+        return $this->attributes['middlename'];
     }
 
     /**
@@ -55,5 +65,25 @@ class User extends GenericUser implements UserContract
     public function tenant()
     {
         return $this->attributes['tenant'];
+    }
+
+    /**
+     * Get the groups for the user.
+     *
+     * @return array
+     */
+    public function groups()
+    {
+        return $this->attributes['groups'];
+    }
+
+    /**
+     * Get the permissions for the user.
+     *
+     * @return array
+     */
+    public function permissions()
+    {
+        return $this->attributes['permissions'];
     }
 }
