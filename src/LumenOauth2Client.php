@@ -10,7 +10,6 @@ use GuzzleHttp\Client;
 use phpseclib\Crypt\RSA;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Auth\GenericUser;
 use EcmXperts\Exception\LumenOauth2Exception;
 use GuzzleHttp\Exception\BadResponseException;
 
@@ -107,15 +106,24 @@ class LumenOauth2Client
                         return new User([
                             'guid' => $userInfo->sub,
                             'firstname' => $userInfo->given_name,
-                            'surname' => $userInfo->family_name,
+                            'lastname' => $userInfo->family_name,
                             'fullname' => $userInfo->name,
-                            'tenant' => $this->claims->tenant,
+                            'tenant' => $userInfo->tenant,
+                            'groups' => $userInfo->groups,
+                            'permissions' => $userInfo->permissions,
                             'scopes' => $this->claims->scopes,
                         ]);
                     }
                 } catch (LumenOauth2Exception $ex) {
-                    return new GenericUser([
-                        'scopes' => $this->claims->scopes
+                    return new User([
+                        'guid' => null,
+                        'firstname' => '',
+                        'lastname' => '',
+                        'fullname' => '',
+                        'tenant' => null,
+                        'groups' => [],
+                        'permissions' => [],
+                        'scopes' => $this->claims->scopes,
                     ]);
                 }
             }
