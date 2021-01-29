@@ -108,9 +108,9 @@ class LumenOauth2Client
                             'firstname' => $userInfo->given_name,
                             'lastname' => $userInfo->family_name,
                             'fullname' => $userInfo->name,
-                            'tenant' => $userInfo->tenant,
-                            'groups' => $userInfo->groups,
-                            'permissions' => $userInfo->permissions,
+                            'tenant' => $this->claims->tenant,
+                            'groups' => $this->claims->groups,
+                            'permissions' => [], //$userInfo->permissions,
                             'scopes' => $this->claims->scopes,
                         ]);
                     }
