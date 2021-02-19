@@ -109,22 +109,9 @@ class LumenOauth2Client
                             'lastname' => $userInfo->family_name,
                             'fullname' => $userInfo->name,
                             'tenant' => $this->claims->tenant,
-                            'groups' => $this->claims->groups,
-                            'permissions' => [], //$userInfo->permissions,
-                            'scopes' => $this->claims->scopes,
                         ]);
                     }
                 } catch (LumenOauth2Exception $ex) {
-                    return new User([
-                        'guid' => null,
-                        'firstname' => '',
-                        'lastname' => '',
-                        'fullname' => '',
-                        'tenant' => null,
-                        'groups' => [],
-                        'permissions' => [],
-                        'scopes' => $this->claims->scopes,
-                    ]);
                 }
             }
         }

@@ -45,18 +45,4 @@ interface User
      * @return string
      */
     public function tenant();
-
-    /**
-     * Get the groups for the user.
-     *
-     * @return array
-     */
-    public function groups();
-
-    /**
-     * Get the permissions for the user.
-     *
-     * @return array
-     */
-    public function permissions();
 }
