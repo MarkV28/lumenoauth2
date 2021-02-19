@@ -66,24 +66,4 @@ class User extends GenericUser implements UserContract
     {
         return $this->attributes['tenant'];
     }
-
-    /**
-     * Get the groups for the user.
-     *
-     * @return array
-     */
-    public function groups()
-    {
-        return $this->attributes['groups'];
-    }
-
-    /**
-     * Get the permissions for the user.
-     *
-     * @return array
-     */
-    public function permissions()
-    {
-        return $this->attributes['permissions'];
-    }
 }
