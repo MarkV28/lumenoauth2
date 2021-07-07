@@ -185,6 +185,7 @@ class LumenOauth2Client
             'handler'     => $handlerStack,
             'expect'      => false,
             'timeout'     => $this->connectionTimeout,
+            'verify'      => (env('APP_ENV', 'production') === 'production'),
         ]);
 
         return $this->client;
